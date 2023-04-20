@@ -1,0 +1,15 @@
+@owner=VSCodium
+@project=vscodium
+
+GET https://api.github.com/repos/{{owner}}/{{project}}/releases
+
+
+@owner=jpochyla
+@project=psst
+GET https://api.github.com/repos/{{owner}}/{{project}}/actions/runs
+
+
+@owner=jpochyla
+@project=psst
+@workflowId=4698116484
+GET https://api.github.com/repos/{{owner}}/{{project}}/actions/runs/{{workflowId}}/artifacts
