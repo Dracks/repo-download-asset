@@ -97,3 +97,9 @@ pub fn (dao AppDao) find_by_name(app_name string) ?App {
 		panic('found ${apps.len} apps in db with name ${app_name}')
 	}
 }
+
+pub fn (dao AppDao) update_last_download(app_id int, download_str string){
+	sql dao.db{
+		update AppTable set last_download = download_str where id == app_id
+	} or { panic(err) }
+}

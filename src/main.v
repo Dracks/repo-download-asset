@@ -5,6 +5,7 @@ import json
 import regex
 
 import app_db
+import config
 
 struct GhApp {
 	name string
@@ -32,7 +33,7 @@ struct GhReleaseResponse{
 	assets []GhReleaseAsset
 }
 
-fn search_asset(assets []GhReleaseAsset) ?GhReleaseAsset{
+fn old_search_asset(assets []GhReleaseAsset) ?GhReleaseAsset{
 	re := regex.regex_opt(vs_codium.regex) or { panic(err)}
 	filtered_assets := assets.filter(re.matches_string(it.name))
 	println(filtered_assets)
@@ -53,15 +54,17 @@ fn main_old() {
 
 	gh_response := json.decode([]GhReleaseResponse, r.body) or { panic(err) }
 	
-	if gh_asset := search_asset(gh_response.first().assets){
+	if gh_asset := old_search_asset(gh_response.first().assets){
 		download_asset(gh_asset)
 	}
 }
 
 
 fn main(){
-	db:=app_db.init()
-	app := App{db:db}
+	config_dir := config.get_dir()
+	db:=app_db.init(config_dir)
+	conf := config.load()
+	app := App{db:db, config: conf}
 
 	execute_cli(app)
 }

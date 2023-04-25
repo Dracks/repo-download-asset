@@ -17,12 +17,6 @@ pub:
 	app AppDao
 }
 
-fn get_config_dir() string {
-	config_path := os.config_dir() or { panic(err) }
-	real_path := os.join_path(os.expand_tilde_to_home(config_path), 'repo-release-downloader')
-	os.mkdir_all(real_path)  or { panic(err) }
-	return real_path
-}
 
 fn get_version(db sqlite.DB) int {
 	versions := sql db {
@@ -56,8 +50,8 @@ fn check_and_migrate(db sqlite.DB){
 }
 
 
-pub fn init() Db{
-	db := sqlite.connect(os.join_path(get_config_dir(),'db.sqlite')) or { panic(err) }
+pub fn init(config_dir string) Db{
+	db := sqlite.connect(os.join_path(config_dir,'db.sqlite')) or { panic(err) }
 
 	sql db {
 		create table DbVersion

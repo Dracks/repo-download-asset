@@ -4,6 +4,10 @@ import cli { Command, Flag }
 import os
 import app_db
 
+const (
+	cli_str_gh_release = 'release'
+	cli_str_gh_artifact = 'artifact'
+)
 
 fn parse_add_app(cmd Command) app_db.App{
 	mut project := cmd.flags.get_string('project') or { '' }
@@ -12,6 +16,19 @@ fn parse_add_app(cmd Command) app_db.App{
 
 	regex := cmd.flags.get_string('regex') or { '' }
 	name := cmd.flags.get_string('name') or { '' }
+	typ_str := cmd.flags.get_string('type') or { panic('type is required')}
+
+	typ := match typ_str{
+		cli_str_gh_release {
+			app_db.AppType.gh_release
+		}
+		cli_str_gh_artifact {
+			app_db.AppType.gh_artifact
+		}
+		else {
+			panic('Invalid application type, use "${cli_str_gh_release}" or "${cli_str_gh_artifact}"')
+		}
+	}
 
 	if url.len>0 {
 		if project.len>0 || owner.len>0 {
@@ -31,7 +48,7 @@ fn parse_add_app(cmd Command) app_db.App{
 		regex: regex
 		project: project
 		owner: owner
-		typ: .gh_release
+		typ: typ
 	}
 }
 
@@ -45,7 +62,7 @@ fn print_app(app app_db.App){
 
 }
 
-fn execute_cli(app App) {
+fn execute_cli(app &App) {
 	mut cli_exec := Command{
 		name: 'Repo download artifacts'
 		description: 'Download your favorite applications directly from the repository releases'
@@ -78,19 +95,72 @@ fn execute_cli(app App) {
 					},
 					Flag{
 						flag: cli.FlagType.string
+						required: true
 						name: 'name'
 						abbrev: 'n'
 						description: 'A simmple name to identify the application'
 					},
 					Flag{
 						flag: cli.FlagType.string
+						required: true
 						name: 'regex'
 						abbrev: 'r'
 						description: 'regex to filter the file to download'
 					},
-					// Todo add the type of application
+					Flag{
+						flag: cli.FlagType.string
+						required: true
+						name: 'type'
+						abbrev: 't'
+						description: 'define if it\'s a github release or an action artifact use: "${cli_str_gh_release}" or "${cli_str_gh_artifact}"'
+					}
 				]
 			},
+			Command{
+				name: 'config'
+				description: 'Set configuration'
+				execute: fn [app] (cmd Command)!{
+					mut config := app.config
+					if github_token := cmd.flags.get_string('github_token') {
+						config.github_token = github_token
+					}
+					config.write_file()
+				}
+				flags: [
+					Flag{
+						flag: cli.FlagType.string
+						name: 'github_token'
+					}
+				]
+			}
+			Command{
+				name: 'download'
+				description: 'Download the last application (arg0 is the app name)'
+				execute: fn [app] (cmd Command)!{
+					app_name := cmd.args.first()
+					folder := cmd.flags.get_string('folder') or {'./downloads'}
+					app.download(app_name, folder)
+				}
+				required_args: 1
+				flags: [
+					/*Flag{
+						flag: cli.FlagType.string
+						name: 'name'
+						abbrev: 'n'
+						required: true
+						description: 'App name to download'
+					}, */
+					Flag{
+						flag: cli.FlagType.string
+						name: 'folder'
+						abbrev: 'f'
+						required: false
+						description: 'Folder to download the app'
+						default_value: ['./downloads']
+					}
+
+				]
+			}
 			Command{
 				name: 'list'
 				description: 'List the applications registered in the database'
@@ -100,23 +170,6 @@ fn execute_cli(app App) {
 						print_app(registered_app)
 					}
 				}
-			}
-			Command{
-				name: 'download'
-				description: 'Download the last application'
-				execute: fn [app] (cmd Command)!{
-					app_name := cmd.flags.get_string('name') or {panic('Name is required')}
-					app.download(app_name, '.')
-				}
-				flags: [
-					Flag{
-						flag: cli.FlagType.string
-						name: 'name'
-						abbrev: 'n'
-						required: true
-						description: 'App name to download'
-					}
-				]
 			}
 		]
 	}
