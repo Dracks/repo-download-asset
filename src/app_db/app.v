@@ -103,3 +103,15 @@ pub fn (dao AppDao) update_last_download(app_id int, download_str string){
 		update AppTable set last_download = download_str where id == app_id
 	} or { panic(err) }
 }
+
+pub fn (dao AppDao) update_latest(app_id int, release_str string){
+	sql dao.db{
+		update AppTable set latest_release = release_str where id == app_id
+	} or { panic(err) }
+}
+
+pub fn (dao AppDao) delete(app_id int) {
+	sql dao.db{
+		delete from AppTable where id == app_id
+	} or { panic(err) }
+}

@@ -11,5 +11,5 @@ GET https://api.github.com/repos/{{owner}}/{{project}}/actions/runs
 
 @owner=jpochyla
 @project=psst
-@workflowId=4698116484
+@workflowId=4774278418
 GET https://api.github.com/repos/{{owner}}/{{project}}/actions/runs/{{workflowId}}/artifacts

@@ -57,8 +57,8 @@ fn print_app(app app_db.App){
 		.gh_release { 'Github Release' }
 		.gh_artifact { 'Github Artifact' }
 	}
-	println("${app.name}\t\t${type_str}")
-	println("\tLast build downloaded: ${app.last_download}\t\tLast release check: ${app.latest_release}")
+	println("${app.name}:${app.owner}/${app.project}\t\t${type_str}")
+	println("\tLast release check: ${app.latest_release}\t\tLast build downloaded: ${app.last_download}")
 
 }
 
@@ -72,7 +72,7 @@ fn execute_cli(app &App) {
 				description: 'Add an application in the list'
 				execute: fn [app] (cmd Command) ! {
 					new_app:= parse_add_app(cmd)
-					app.add_app(new_app)
+					app.add_app(new_app) or {println(err)}
 				}
 				flags: [
 					Flag{
@@ -134,6 +134,27 @@ fn execute_cli(app &App) {
 				]
 			}
 			Command{
+				name: 'delete'
+				description: 'Delete an application from the list'
+				required_args: 1
+				execute: fn [app] (cmd Command)!{
+					app_name := cmd.args.first()
+					if db_app := app.get_app(app_name) {
+						println("Are you sure you wish to delete the following app")
+						print_app(db_app)
+						confirmation := os.input('Repeat the app name>')
+						if app_name == confirmation {
+							app.delete_app(db_app)
+							println("App deleted")
+						} else {
+							println("Confirmation doesn't match, aborting")
+						}
+					} else {
+						println("No app ${app_name} found")
+					}
+				}
+			}
+			Command{
 				name: 'download'
 				description: 'Download the last application (arg0 is the app name)'
 				execute: fn [app] (cmd Command)!{
@@ -143,13 +164,6 @@ fn execute_cli(app &App) {
 				}
 				required_args: 1
 				flags: [
-					/*Flag{
-						flag: cli.FlagType.string
-						name: 'name'
-						abbrev: 'n'
-						required: true
-						description: 'App name to download'
-					}, */
 					Flag{
 						flag: cli.FlagType.string
 						name: 'folder'
@@ -168,6 +182,19 @@ fn execute_cli(app &App) {
 					apps := app.list_apps()
 					for registered_app in apps {
 						print_app(registered_app)
+					}
+				}
+			},
+			Command{
+				name: 'update'
+				description: 'Update the last version available'
+				execute: fn [app] (cmd Command) !{
+					if cmd.args.len>0 {
+						for app_name in cmd.args {
+							app.update_app_name(app_name)
+						}
+					} else {
+						app.update_all()
 					}
 				}
 			}
