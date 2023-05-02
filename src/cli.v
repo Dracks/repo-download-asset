@@ -108,9 +108,9 @@ fn execute_cli(app &App) {
 					},
 					Flag{
 						flag: cli.FlagType.string
-						required: true
 						name: 'type'
 						abbrev: 't'
+						default_value: [cli_str_gh_release]
 						description: 'define if it\'s a github release or an action artifact use: "${cli_str_gh_release}" or "${cli_str_gh_artifact}"'
 					},
 				]

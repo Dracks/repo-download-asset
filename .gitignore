@@ -2,6 +2,7 @@
 downloads
 main
 github_releases
+repo-download-asset
 *.exe
 *.exe~
 *.so
