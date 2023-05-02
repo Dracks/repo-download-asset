@@ -8,7 +8,7 @@ struct DbVersion {
 }
 
 const (
-	current = 1
+	current    = 1
 	no_version = 0
 )
 
@@ -17,41 +17,41 @@ pub:
 	app AppDao
 }
 
-
 fn get_version(db sqlite.DB) int {
 	versions := sql db {
 		select from DbVersion
 	} or { panic(err) }
 
-	if versions.len >1 {
+	if versions.len > 1 {
 		panic('Invalid number of versions row in db')
-	} else if versions.len == 1{
+	} else if versions.len == 1 {
 		return versions.first().id
 	}
-	return no_version
+	return app_db.no_version
 }
 
-fn check_and_migrate(db sqlite.DB){
+fn check_and_migrate(db sqlite.DB) {
 	db_version := get_version(db)
-	current_version := DbVersion{id: current}
+	current_version := DbVersion{
+		id: app_db.current
+	}
 
 	match db_version {
-		no_version {
+		app_db.no_version {
 			sql db {
 				create table AppTable
 				insert current_version into DbVersion
 			} or { panic(err) }
 		}
-		current {}
+		app_db.current {}
 		else {
 			panic('Invalid db_version ${db_version} in database')
 		}
 	}
 }
 
-
-pub fn init(config_dir string) Db{
-	db := sqlite.connect(os.join_path(config_dir,'db.sqlite')) or { panic(err) }
+pub fn init(config_dir string) Db {
+	db := sqlite.connect(os.join_path(config_dir, 'db.sqlite')) or { panic(err) }
 
 	sql db {
 		create table DbVersion
@@ -60,6 +60,8 @@ pub fn init(config_dir string) Db{
 	check_and_migrate(db)
 
 	return Db{
-		app: AppDao{db: db}
+		app: AppDao{
+			db: db
+		}
 	}
 }

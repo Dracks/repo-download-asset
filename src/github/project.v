@@ -5,14 +5,14 @@ import os
 
 pub struct Project {
 pub:
-	owner string [required]
-	name string [required]
+	owner     string [required]
+	name      string [required]
 	api_token string
 }
 
-pub fn (self Project) download_file(url string, path string){
+pub fn (self Project) download_file(url string, path string) {
 	mut header := http.Header{}
-	header.set(.authorization, "Bearer ${self.api_token}")
+	header.set(.authorization, 'Bearer ${self.api_token}')
 	s := http.fetch(
 		method: .get
 		url: url

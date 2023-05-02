@@ -8,32 +8,32 @@ pub enum AppType {
 }
 
 const (
-	gh_release_db=1
-	gh_artifact_db=2
+	gh_release_db  = 1
+	gh_artifact_db = 2
 )
 
 pub struct App {
 pub:
-	id int 
-	name string [required]
-	owner string [required]
-	project string [required]
-	last_download string
+	id             int
+	name           string  [required]
+	owner          string  [required]
+	project        string  [required]
+	last_download  string
 	latest_release string
-	regex string [required]
-	typ AppType [required]
+	regex          string  [required]
+	typ            AppType [required]
 }
 
 [table: 'App']
 struct AppTable {
-	id int [sql: serial; primary]
-	name string [required; sql_type: 'varchar(255)']
-	owner string [required; sql_type: 'varchar(255)']
-	project string [required; sql_type: 'varchar(255)']
-	last_download string
+	id             int    [primary; sql: serial]
+	name           string [required; sql_type: 'varchar(255)']
+	owner          string [required; sql_type: 'varchar(255)']
+	project        string [required; sql_type: 'varchar(255)']
+	last_download  string
 	latest_release string
-	regex string [required; sql_type: 'varchar(255)']
-	typ int [required; sql_type: 'INTEGER']
+	regex          string [required; sql_type: 'varchar(255)']
+	typ            int    [required; sql_type: 'INTEGER']
 }
 
 struct AppDao {
@@ -41,9 +41,13 @@ struct AppDao {
 }
 
 fn convert_to_public_app(app AppTable) App {
-	typ := match app.typ{
-		gh_release_db { AppType.gh_release }
-		gh_artifact_db { AppType.gh_artifact }
+	typ := match app.typ {
+		app_db.gh_release_db {
+			AppType.gh_release
+		}
+		app_db.gh_artifact_db {
+			AppType.gh_artifact
+		}
 		else {
 			panic('Invalid type found in the db ${app.typ}')
 		}
@@ -60,7 +64,7 @@ fn convert_to_public_app(app AppTable) App {
 	}
 }
 
-pub fn (dao AppDao) add(app App){
+pub fn (dao AppDao) add(app App) {
 	app_table := AppTable{
 		name: app.name
 		owner: app.owner
@@ -69,8 +73,8 @@ pub fn (dao AppDao) add(app App){
 		latest_release: app.latest_release
 		regex: app.regex
 		typ: match app.typ {
-			.gh_release { gh_release_db }
-			.gh_artifact { gh_artifact_db }
+			.gh_release { app_db.gh_release_db }
+			.gh_artifact { app_db.gh_artifact_db }
 		}
 	}
 	sql dao.db {
@@ -79,17 +83,17 @@ pub fn (dao AppDao) add(app App){
 }
 
 pub fn (dao AppDao) find_all() []App {
-	apps := sql dao.db{
+	apps := sql dao.db {
 		select from AppTable
 	} or { panic(err) }
 	return apps.map(convert_to_public_app(it))
 }
 
 pub fn (dao AppDao) find_by_name(app_name string) ?App {
-	apps := sql dao.db{
+	apps := sql dao.db {
 		select from AppTable where name == app_name
 	} or { panic(err) }
-	if apps.len== 1 {
+	if apps.len == 1 {
 		return convert_to_public_app(apps.first())
 	} else if apps.len == 0 {
 		return none
@@ -98,20 +102,20 @@ pub fn (dao AppDao) find_by_name(app_name string) ?App {
 	}
 }
 
-pub fn (dao AppDao) update_last_download(app_id int, download_str string){
-	sql dao.db{
+pub fn (dao AppDao) update_last_download(app_id int, download_str string) {
+	sql dao.db {
 		update AppTable set last_download = download_str where id == app_id
 	} or { panic(err) }
 }
 
-pub fn (dao AppDao) update_latest(app_id int, release_str string){
-	sql dao.db{
+pub fn (dao AppDao) update_latest(app_id int, release_str string) {
+	sql dao.db {
 		update AppTable set latest_release = release_str where id == app_id
 	} or { panic(err) }
 }
 
 pub fn (dao AppDao) delete(app_id int) {
-	sql dao.db{
+	sql dao.db {
 		delete from AppTable where id == app_id
 	} or { panic(err) }
 }
