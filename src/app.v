@@ -112,7 +112,8 @@ fn (self App) download(app_name string, folder string) {
 			}
 			.gh_artifact {
 				if artifact := self.get_github_artifact(project, app) {
-					path := os.join_path(folder, artifact.name)
+					format := artifact.archive_download_url.split('/').last()
+					path := os.join_path(folder, '${artifact.name}.${format}')
 					self.db.app.update_latest(app.id, artifact.created_at)
 					project.download_file(artifact.archive_download_url, path)
 					self.db.app.update_last_download(app.id, artifact.created_at)
