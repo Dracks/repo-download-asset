@@ -65,6 +65,9 @@ fn execute_cli(app &App) {
 	mut cli_exec := Command{
 		name: 'Repo download artifacts'
 		description: 'Download your favorite applications directly from the repository releases'
+		execute: fn [app] (cmd Command) ! {
+			execute_window(app)
+		}
 		commands: [
 			Command{
 				name: 'add'

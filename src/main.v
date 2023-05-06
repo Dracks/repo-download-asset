@@ -68,6 +68,5 @@ fn main() {
 		db: db
 		config: conf
 	}
-
 	execute_cli(app)
 }
